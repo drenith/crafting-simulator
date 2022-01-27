@@ -1,0 +1,300 @@
+<!doctype html>
+<html>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+  <script src="js/void_gauntlet_perks.js"></script>
+  <script src="js/armor_perks.js"></script>
+  <script src="js/great_axe_perks.js"></script>
+  <script src="js/rapier_perks.js"></script>
+  <script src="js/ring_perks.js"></script>
+  <script src="js/amulet_perks.js"></script>
+  <script src="js/earring_perks.js"></script>
+  <script src="js/ice_gauntlet_perks.js"></script>
+  <script src="js/spear_perks.js"></script>
+  <script src="js/sword_perks.js"></script>
+	<style type="text/css">
+		.forced {
+			background-color: gold;
+		}
+		
+		.connectedSortable {
+			padding: 5px;
+			text-align: center;
+		}
+		
+		.connectedSortable li {
+			list-style: none;
+			//top left bottom right
+			padding: 2px 5px 2px 5px;
+			margin-top: 2px;
+			margin-bottom: 2px;
+			border: 1px solid;
+			text-align: center;
+		}
+		
+		.connectSortable li {
+			cursor: move;
+			user-select: none;
+		}
+		
+		input.small {
+			width:40px;
+			margin-left: 2px;
+			margin-right: 2px;
+		}
+		
+		input.price {
+			width:70px;
+			margin-left: 5px;
+			margin-right: 5px;
+		}		
+		
+		#filters ul.droppable {
+			width: 200px;
+			min-height: 40px;
+			border: 1px solid;
+		}
+		
+		.row {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			width: 100%;
+		}
+
+		#perklist {
+			columns: 3;
+			-webkit-columns: 3;
+			-moz-columns: 3;
+		}
+
+		.column {
+			display: flex;
+			flex-direction: column;
+			flex-basis: 100%;
+			flex: 1;
+		}
+		
+		#wrapper {
+			width: 80%;
+		}
+	</style>
+	<script>
+function getRandomInt(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
+function getPerk(perks, labels) {
+	let tmp = perks.filter(perk => !perk.labels.some(e => labels.includes(e)));
+	return tmp[getRandomInt(0, tmp.length)];
+}
+
+function domListToArray(selector) {
+	return [...document.querySelectorAll(selector)].map(li => li.innerHTML);
+}
+
+function generateItem(forced) {
+	let item = [];
+	let labels = [];
+	
+	if(forced) {
+		item.push(forced);
+		labels.push(..._perks.find(p => p.name === forced).labels);
+	}
+	
+	//is it a 600?
+	let perk_count = getRandomInt(0, 6) === 5 ? 3 : 2;
+	
+	for(let i=item.length; i < perk_count; i++) {
+		let perk = getPerk(_perks, labels);
+		labels = labels.concat(perk.labels);
+		item.push(perk.name);
+	}
+	
+	return item;
+}
+
+let _perks;
+function update() {
+	const select = document.getElementById('item_type');
+	
+	const selected = select.options[select.selectedIndex].text;
+	
+	switch (selected) {
+		case 'Void Gauntlet' : _perks = void_gauntlet_perks;
+			break;
+		case 'Armor' : _perks = armor_perks;
+			break;
+		case 'Rapier' : _perks = rapier_perks;
+			break;
+		case 'Great Axe' : _perks = great_axe_perks;
+			break;
+		case 'Sword' : _perks = sword_perks;
+			break;
+		case 'Spear' : _perks = spear_perks;
+			break;
+		case 'Ice Gauntlet' : _perks = ice_gauntlet_perks;
+			break;			
+		case 'Ring' : _perks = ring_perks;
+			break;
+		case 'Amulet' : _perks = amulet_perks;
+			break;
+		case 'Earring' : _perks = earring_perks;
+			break;
+	}
+	
+	const perklist = document.getElementById('perklist');
+	while (perklist.firstChild) {
+		perklist.removeChild(perklist.lastChild);
+	}
+	
+	_perks.sort((a, b) => a.name.localeCompare(b.name)).forEach((perk) => {
+		const li = document.createElement('li');
+		li.appendChild(document.createTextNode(perk.name));
+		perklist.appendChild(li);
+	});
+}
+
+function cost() {
+	const elements = ['asmodeum', 'glittering_ebony', 'phoenixweave', 'runic_leather'];
+	
+	let sum = 0;
+	elements.forEach(element => {
+		let count = document.getElementById(element + "_count").value;
+		if(count > 0) {
+			let price = document.getElementById(element + "_price").value;
+			sum += count * price;
+		}
+	});
+	
+	const timeless = document.getElementById('timeless_price').value;
+	if(timeless) {
+		sum += parseInt(timeless);
+	}
+	
+	return sum;
+}
+	
+		$(function() {
+			update();
+		
+			$( "#perklist, .droppable" ).sortable({
+				connectWith: ".connectedSortable"
+			}).disableSelection();
+			
+			$('.connectedSortable').on('dblclick', 'li', function(){
+				let existing = document.querySelector('.forced');
+				if(existing) {
+					existing.classList.remove('forced');
+				}
+				if(existing != this) {
+					this.classList.add('forced');
+				}
+			});
+			
+			$('#item_type').on('change', update);
+			
+			$('#simulate').on('click', () => {
+				const must_list = domListToArray('#must_list li');
+				const at_least_pool = domListToArray('#at_least_pool li');
+				const at_least_count = document.getElementById('at_least_count').value;
+				const none_list = domListToArray('#none_list li');
+				const forced = document.querySelector('.forced') ? document.querySelector('.forced').innerHTML : undefined;
+				
+				const tests = [];
+				
+				if(must_list.length > 0) {
+					tests.push(item => must_list.every(perk => item.includes(perk)));
+				}
+				
+				if(at_least_pool.length > 0) {
+					tests.push(item => item.filter(perk => at_least_pool.includes(perk)).length >= at_least_count);
+				}
+				
+				if(none_list.length > 0) {
+					tests.push(item => none_list.every(perk => !item.includes(perk)));
+				}
+				
+				let data = [];
+				for(let i=0; i < 1000; i++) {
+					let random;
+					let k=0;
+					do {
+						random = generateItem(forced);
+						k++;
+						if(k >= 1000) {
+							break;
+						}
+					} while(!tests.every(test => test(random)))
+					data.push(k);
+				}
+
+				const average = (array) => array.reduce((a, b) => a + b) / array.length;
+				
+				const avg = Math.ceil(average(data));
+
+				if(avg < 1000) {
+					alert(`Based on 1000 simulations this would take ${avg} attempts on average and cost ${(cost() * avg).toLocaleString()}`);
+				} else {
+					alert(`Gave up after 1000 average tries. This is a pipe dream or impossible`);
+				}
+			});
+		});
+	</script>
+	<body>
+	<div id='wrapper'>
+		<div class="row">
+			<div class="column">
+				<div class="row">
+					<input type="number" class="small" id="asmodeum_count" min=0 />asmodeum per craft at <input id="asmodeum_price" class="price" type="number"/>
+				</div>
+				<div class="row">
+					<input type="number" class="small" id="glittering_ebony_count" min=0 />glittering ebony per craft at <input id="glittering_ebony_price" class="price" type="number"/>
+				</div>
+				<div class="row">			
+					<input type="number" class="small" id="runic_leather_count" min=0 />runic leather per craft at <input id="runic_leather_price" class="price" type="number"/>
+				</div>
+				<div class="row">			
+					<input type="number" class="small" id="phoenixweave_count" min=0 />phoenixweave per craft at <input id="phoenixweave_price" class="price" type="number"/>
+				</div>
+				<div class="row">			
+					<label>Timeless Shard Price <input id="timeless_price" class="price" type="number" min=0 /></label>
+				</div>
+				<div class="row">			
+					<select id="item_type">
+						<option>Armor</option>
+						<option>Void Gauntlet</option>
+						<option>Rapier</option>
+						<option>Great Axe</option>
+						<option>Ice Gauntlet</option>
+						<option>Spear</option>
+						<option>Sword</option>
+						<option>Ring</option>
+						<option>Amulet</option>						
+						<option>Earring</option>
+					</select>
+				</div>
+				<div id="filters">
+					<span>Must</span>
+					<ul id="must_list" class="droppable connectedSortable"></ul>
+					<span>At least <input id="at_least_count" type="number" min=1 max=3 /></span>
+					<ul id="at_least_pool" class="droppable connectedSortable"></ul>
+					<span>None</span>
+					<ul id="none_list" class="droppable connectedSortable"></ul>
+				</div>
+				<div class="row">
+					<button id="simulate">Simulate</button>
+				</div>
+			</div>
+			<div class="column">
+				<ul id="perklist" class="connectedSortable"></ul>		
+			</div>
+		</div>
+	</div>
+	</body>
+</html>
