@@ -16,6 +16,7 @@
   <script src="js/ice_gauntlet_perks.js"></script>
   <script src="js/spear_perks.js"></script>
   <script src="js/sword_perks.js"></script>
+  <script src="js/tower_shield_perks.js"></script>
 	<style type="text/css">
 		.forced {
 			background-color: gold;
@@ -152,6 +153,8 @@ function update() {
 			break;
 		case 'Earring' : _perks = earring_perks;
 			break;
+		case 'Tower Shield' : _perks = tower_shield_perks;
+			break;			
 	}
 	
 	const perklist = document.getElementById('perklist');
@@ -286,6 +289,7 @@ function cost() {
 						<option>Ring</option>
 						<option>Amulet</option>						
 						<option>Earring</option>
+						<option>Tower Shield</option>
 					</select>
 				</div>
 				<div id="filters">
